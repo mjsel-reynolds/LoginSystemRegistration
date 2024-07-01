@@ -1,9 +1,10 @@
 from tkinter import *#import all classes, functions, etc. from tkinter module
 from tkinter import messagebox
 import pymysql
+import time
+import pyotp
 
 #Functionality
-
 
 def enter_user(event):
     if userEntry.get()=='enter username':
@@ -41,6 +42,14 @@ def forgot_pw():
     login_root.destroy()
     import new_password
 
+
+def user_verification():
+    messagebox.showinfo('User Verification', 'A Verification Code has been sent to your email. Enter the code'
+                                             'to access your account.')
+    login_root.destroy()
+    import user_verification
+
+
 def login_user():
     # Check if entry fields are empty
     if userEntry.get()=='enter username' or passwordEntry.get()=='enter password' or userEntry.get()=='' or passwordEntry.get()=='':
@@ -69,6 +78,8 @@ def login_user():
         if userTaken==None: #Corresponding username not found in database
             messagebox.showerror('Error', 'Invalid Username or Password')
         else:
+            # Use Email Authentication based on Email in Database
+            user_verification()
             messagebox.showinfo('Welcome', 'Welcome Back!')
 
 
