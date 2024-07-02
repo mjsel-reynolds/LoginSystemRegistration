@@ -1,9 +1,35 @@
 from tkinter import *
-from tkinter import messagebox
+from tkinter import messagebox #Use all tkinter modules for GUI
 from PIL import ImageTk #Use to upload jpg files in place of png files
 import pymysql #Use to connect mySQL database to Python
+import pyotp #Use to generate random verification code
+import time #Use to help generate time based 30 sec code
+
 
 # Functionality
+
+def verify_user():
+    # Generate Verification Code
+    key = pyotp.random_base32()
+    totp = pyotp.TOTP(key)
+    print(totp.now())
+    verify_code = totp.now() #Makes key based on current time, regenerates every 30 secs
+
+    # Verify code
+    input_code = input('Enter 2FA Code:')
+    print(totp.verify(input_code))
+
+    # Send verification code to user
+    # Connect to database
+    mydata=pymysql.connect(host='localhost',user='root',password='Classynotsassy1!')
+    mycursor=mydata.cursor()
+
+    # Check if fields are empty
+    #if codeEntry.get()=='':
+        #messagebox.showerror('Error', 'All Fields Are Required')
+    #else:
+        # Connect to database
+
 
 
 root=Tk()
@@ -37,16 +63,9 @@ resend_code = Button(root, text='RESEND CODE', bd=0, bg='#738664', activebackgro
                      height=1)
 resend_code.place(x=482,y=500)
 
-# Generate key to send to user via the given email corresponding to their account in the database
-# Generate key to send to user, used as a one-time password
-#key = pyotp.random_base32()
-#print(key)
 
-# Time based key will generate a new random key every 30 secs, display message that
-# countdowns from 30 secs after login button was pressed
-#totp = pyotp.TOTP(key)
-
-#print(totp.now())
+messagebox.showinfo('User Verification', 'A Verification Code has been sent to your email.\n'
+                                         'Enter the code within 30 seconds to access your account')
 
 
 root.mainloop()

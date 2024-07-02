@@ -3,8 +3,27 @@ from tkinter import messagebox
 import pymysql
 import time
 import pyotp
+import smtplib
+from email.message import EmailMessage
 
 #Functionality
+def email_msg(subject, body, address):
+    message = EmailMessage()
+    message.set_content(body)
+    message['subject']=subject
+    message['to']=address
+
+    user = 'pylogin.system@gmail.com'
+    message['from'] = user
+    password = 'cyez msqk dzco pdnf'
+
+    server= smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(user, password)
+    server.send_message(message)
+
+    server.quit()
+
 
 def enter_user(event):
     if userEntry.get()=='enter username':
@@ -44,10 +63,51 @@ def forgot_pw():
 
 
 def user_verification():
-    messagebox.showinfo('User Verification', 'A Verification Code has been sent to your email. Enter the code'
-                                             'to access your account.')
+    # Generate code to send to user
+    # Generate Verification Code
+    key = pyotp.random_base32()
+    totp = pyotp.TOTP(key)
+    print(totp.now())
+    verify_code = totp.now()  # Makes key based on current time, regenerates every 30 secs
+
+    # Verify code
+    #input_code = input('Enter 2FA Code:')
+    #print(totp.verify(input_code))
+
+    # Check database for email matching username and send verification code
+    # Connect to database with userdata
+    try:
+        mydata = pymysql.connect(host='localhost', user='root', password='Classynotsassy1!')
+        mycursor = mydata.cursor()
+    except:
+        messagebox.showerror('Error', 'Database Connection Issue. Please Try Again')
+        return
+
+    query = 'use userdata'
+    mycursor.execute(query)
+
+    # Find email inside the database
+    query = 'select email from data where username=%s'
+    mycursor.execute(query, userEntry.get())
+
+    userTaken = mycursor.fetchone()
+    userEmail = ''
+    for r in userTaken:
+        userEmail += r
+    print(userEmail)
+
+    # send email to user
+    email_msg('Login Project Verification Code',
+              'Login Registration Verification Code\n'
+              'Below is the verification code. Please insert the code as '
+              'directed on the Login Project verification page.\n' 
+              'This code will expire in 30 seconds:\n' + verify_code,
+              userEmail)
+
+    mycursor.close()
+    mydata.close()
     login_root.destroy()
-    import user_verification
+    #import user_verification
 
 
 def login_user():
